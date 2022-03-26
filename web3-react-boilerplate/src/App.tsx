@@ -29,22 +29,22 @@ interface TokenMetadata {
 }
 
 // Constants
-const BAGZ_ADDRESS = '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512'
+const BAGZ_ADDRESS = '0x1613beB3B2C4f22Ee086B2b38C1476A3cE7f78E8'
 const ITEM_BUTTONS = [
   {
-    name: 'Stone',
+    name: 'Gem',
     quantity: 5,
   },
   {
-    name: 'Stick',
+    name: 'Gear',
     quantity: 2,
   },
   {
-    name: 'Gear',
+    name: 'Pickaxe',
     quantity: 1,
   },
   {
-    name: 'Diamond',
+    name: 'Axe',
     quantity: 1,
   },
 ]
@@ -95,11 +95,7 @@ const App = () => {
         const content = JSON.parse(
           Buffer.from(encodedContent, 'base64').toString(),
         )
-        console.log(
-          content.attributes.filter(
-            (elem: Attribute) => elem.trait_type === 'Content',
-          )[0].value,
-        )
+        setTokenMetadata(content)
         setBagContent(
           JSON.parse(
             content.attributes.filter(
@@ -188,42 +184,39 @@ const App = () => {
           ) : (
             <div>
               <p>{statusText}</p>
-              {!ownerHasBagz() ? (
-                <MintButton onClick={mint} />
-              ) : (
-                <div>
-                  <p>{tokenMetadata.name}</p>
-                  <img
-                    alt={tokenMetadata.name}
-                    src={tokenMetadata.image}
-                    width="300px"
-                  />
-                  <div className="additem-btn-grid">
-                    {ITEM_BUTTONS.map(({ name, quantity }) => (
-                      <AddItemButton
-                        key={name}
-                        name={name}
-                        quantity={quantity}
-                        onClick={() => addItem(name, quantity)}
-                      />
-                    ))}
-                  </div>
-                  <div className="item-grid">
-                    {bagContent &&
-                      bagContent.map((elem) => {
-                        const name = Object.keys(elem)[0]
-                        const quantity = parseInt(elem[name], 10)
-                        return (
-                          <Item key={name} name={name} quantity={quantity} />
-                        )
-                      })}
-                    {bagContent &&
-                      [...Array(12 - bagContent.length)].map((id) => (
-                        <Item key={id} name="" quantity={0} />
-                      ))}
-                  </div>
+              <MintButton onClick={mint} />
+              <div>
+                <p>{tokenMetadata.name}</p>
+                <img
+                  alt={tokenMetadata.name}
+                  src={tokenMetadata.image}
+                  width="300px"
+                />
+                <div className="additem-btn-grid">
+                  {ITEM_BUTTONS.map(({ name, quantity }) => (
+                    <AddItemButton
+                      key={name}
+                      name={name}
+                      quantity={quantity}
+                      onClick={() => addItem(name, quantity)}
+                    />
+                  ))}
                 </div>
-              )}
+                {/* <div className="item-grid">
+                  {bagContent &&
+                    bagContent.map((elem) => {
+                      const name = Object.keys(elem)[0]
+                      const quantity = parseInt(elem[name], 10)
+                      return (
+                        <Item key={name} name={name} quantity={quantity} />
+                      )
+                    })}
+                  {bagContent &&
+                    [...Array(12 - bagContent.length)].map((id) => (
+                      <Item key={id} name="" quantity={0} />
+                    ))}
+                </div> */}
+              </div>
             </div>
           )}
         </div>

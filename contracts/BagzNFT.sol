@@ -12,7 +12,10 @@ contract BagzNFT is ERC721URIStorage {
   event NewBagzNFTMinted(address sender, uint256 tokenId);
   event UpdatedTokenUri(address sender, uint256 tokenId);
 
-  string[] private ALLOWED_ITEMS = ["Stone", "Stick", "Gear", "Diamond"];
+  string[] private ALLOWED_ITEMS = ["Gem", "Gear", "Pickaxe", "Axe"];
+  string[] private ALLOWED_ITEMS_ICON = [unicode"💎", unicode"⚙", unicode"⛏", unicode"🪓"];
+
+  string[] private PINS = [unicode"😂", unicode"🍌", unicode"😎", unicode"😏", unicode"💰", unicode"🕹", unicode"🍕", unicode"💩", unicode"🐵", unicode"☣", unicode"💦", unicode"⚡", unicode"📈", unicode"🧀"];
 
   uint256 private constant NB_DIFFERENT_ITEMS_PER_INVENTORY = 5;
   BagzItemNFT private bagzItem;
@@ -92,6 +95,73 @@ contract BagzNFT is ERC721URIStorage {
       console.log(string(abi.encodePacked(name, ": ", Strings.toString(bags[tokenId].items[name].quantity))));
     }
   }
+  
+  function getListEmojis(Bag storage bag) private view returns(string memory) {
+    string[11] memory p;
+    p[0] = "<g class='i' transform='translate(0 281)'><text x='40'>";
+    p[1] = "";
+    p[2] = "</text><text x='95'>";
+    p[3] = "";
+    p[4] = "</text><text x='150'>";
+    p[5] = "";
+    p[6] = "</text><text x='205'>";
+    p[7] = "";
+    p[8] = "</text><text x='260'>";
+    p[9] = "";
+    p[10] = "</text></g>";
+
+    uint itemIndex = 1;
+    for (uint i = 0; i < ALLOWED_ITEMS.length; ++i) {
+      string memory itemName = ALLOWED_ITEMS[i];
+      if (bag.items[itemName].quantity > 0) {
+        p[itemIndex] = ALLOWED_ITEMS_ICON[i];
+        itemIndex += 2;
+      }
+    }
+    return string(abi.encodePacked(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], p[10]));
+  }
+
+  function getListQuantity(Bag storage bag) private view returns (string memory) {
+    string[11] memory p;
+    p[0] = "<g class='q' transform='translate(0 288)'><text x='62'>";
+    p[1] = "";
+    p[2] = "</text><text x='117'>";
+    p[3] = "";
+    p[4] = "</text><text x='172'>";
+    p[5] = "";
+    p[6] = "</text><text x='227'>";
+    p[7] = "";
+    p[8] = "</text><text x='282'>";
+    p[9] = "";
+    p[10] = "</text></g>";
+
+    uint itemIndex = 1;
+    for (uint i = 0; i < ALLOWED_ITEMS.length; ++i) {
+      string memory itemName = ALLOWED_ITEMS[i];
+      if (bag.items[itemName].quantity > 0) {
+        p[itemIndex] = Strings.toString(bag.items[itemName].quantity);
+        itemIndex += 2;
+      }
+    }
+    return string(abi.encodePacked(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], p[10]));
+  }
+
+  function getSvg(Bag storage bag, uint tokenId) private view returns (string memory) {
+    string[12] memory p;
+    p[0] = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 300'><style>.q text{font-size:12px;fill:#fff;font-weight:700;text-anchor:end;paint-order:stroke;stroke-width:3;stroke:#000}.i text{font-size:37px;text-anchor:middle}</style><path fill='#fff' d='M0 0h300v300H0z'/><text x='150' y='30' font-size='20' text-anchor='middle' style='font-weight:700'>Bagz #";
+    p[1] = Strings.toString(tokenId);
+    p[2] = "</text><text x='38' y='190' font-size='160'>";
+    p[3] = unicode"🎒";
+    p[4] = "</text><text x='147' y='110' rotate='20' font-size='30'>";
+    p[5] = PINS[(((tokenId * tokenId * 16807) % 2147483647)) % PINS.length];
+    p[6] = "</text><text x='110' y='140' rotate='-15' font-size='30'>";
+    p[7] = PINS[((((tokenId * (tokenId + 1)) * 16807) % 2147483647)) % PINS.length];
+    p[8] = "</text><path style='fill:beige;stroke-width:6;stroke:#7e3c10' d='M12 240h55v55H12zm55 0h55v55H67zm55 0h55v55h-55zm55 0h55v55h-55zm55 0h55v55h-55z'/>";
+    p[9] = getListEmojis(bag);
+    p[10] = getListQuantity(bag);
+    p[11] = "</svg>";
+    return string(abi.encodePacked(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], p[10], p[11]));
+  }
 
   function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
     Bag storage bag = bags[tokenId];
@@ -105,11 +175,12 @@ contract BagzNFT is ERC721URIStorage {
         bagzContent = string(abi.encodePacked(bagzContent, bytes(bagzContent).length == 0 ? '' : ', ', '{\\"', itemName, '\\": \\"', Strings.toString(itemQuantity), '\\"}'));
       ++i;
     }
+    string memory svgData = getSvg(bag, tokenId);
 
     string memory json = Base64.encode(
       bytes(string(abi.encodePacked(
         '{"name": "Bagz #', Strings.toString(tokenId), '", ',
-        '"description": "A unique Bagz", "image": "https://images.emojiterra.com/mozilla/512px/1f392.png", ',
+        '"description": "A unique Bagz", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(svgData)), '", ',
         '"attributes": [{"trait_type": "MaxSlot", "value": "', Strings.toString(bags[tokenId].maxSlot), '" },',
           '{"trait_type": "Content", "value": "[', bagzContent, ']" }]}'
     ))));

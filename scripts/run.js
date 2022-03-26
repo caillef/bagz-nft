@@ -30,7 +30,7 @@ const main = async () => {
   console.log(txn)
 
   console.log("Content of bag:")
-  await bagzContract.showBag(1, ["Stone", "Gravel", "Diamond"])
+  await bagzContract.showBag(1, ["Stone", "Gravel", "Gem"])
 };
 
 const runMain = async () => {
